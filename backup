@@ -1,0 +1,3 @@
+m white space --
+trim :: String -> String
+trim str = str |> pack |> strip |> upnack
