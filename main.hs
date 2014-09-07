@@ -79,6 +79,13 @@ newArrayNode obj =
 	let key = "key"
 	in JSONnode key (JSONobject [])
 
+removeQuotes :: String -> String
+removeQuotes str = 
+	let first = if head str == '\"' then tail str else str
+	in 
+		if last first == '\"' then init first else first
+	
+
 
 -- New Parser Func --
 jsonParse :: String -> JSONnode
