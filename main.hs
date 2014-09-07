@@ -63,7 +63,6 @@ main = do
 test = parseJSON prepedData
 
 
-
 -- Old Parser Func --
 parseJSON :: String -> JSONnode
 parseJSON jsonString
@@ -80,6 +79,7 @@ parseJSON jsonString
 
 newObjNode :: String -> JSONnode
 newObjNode obj = JSONnode "key" (JSONobject [])
+
 
 -- New Parser Func --
 jsonParse :: String -> Maybe JSONnode
@@ -106,18 +106,6 @@ isNum str =
 	      then False
 	      else True
 
-createObjectNode :: String -> String -> JSONnode
-createObjectNode key str =
-	let strippedStr = stripObject str
-	    props = splitOn "," strippedStr
-	    nodes = map parseJSON props
-	in JSONnode key (JSONobject nodes)
-
-createNumNode :: String -> String -> JSONnode
-createNumNode key str =
-	let num = read str
-	in JSONnode key (JSONnum num)
-
 isObject :: String -> Bool
 isObject str = head str == '{'
 
@@ -134,6 +122,18 @@ isBool str = str == "False" || str == "True"
 createBoolNode :: String -> String -> JSONnode
 createBoolNode key str = 
 	if str == "False" then JSONnode key (JSONbool False) else JSONnode key (JSONbool True)
+
+createObjectNode :: String -> String -> JSONnode
+createObjectNode key str =
+	let strippedStr = stripObject str
+	    props = splitOn "," strippedStr
+	    nodes = map parseJSON props
+	in JSONnode key (JSONobject nodes)
+
+createNumNode :: String -> String -> JSONnode
+createNumNode key str =
+	let num = read str
+	in JSONnode key (JSONnum num)
 
 -- Prep Functions --
 filterReturns :: String -> String
@@ -155,23 +155,6 @@ stripArray str =
 	tail $ init str
 
 -- Splitter functions --
-{-
-splitNode :: String -> (String, String)
-splitNode str = 
-	let allSplits = splitOn ":" str
-	in (head allSplits, concat $ tail allSplits)
--}
-
-splitNode2 :: String -> Maybe (String, String)
-splitNode2 str = 
-	let index = findIndex (\x -> x == ':') str
-	in if index == Nothing
-	      then Nothing
-	else Just (slice 0 (fromJust index) str, slice (fromJust index) (length str -1) str)
-
-splitNode4 str = 
-	let (a, b) = splitNode3 str
-	in (a, tail b)
 
 splitNode3 :: String -> (String, String)
 splitNode3 str = 
@@ -183,33 +166,9 @@ splitNode3 str =
 		    back = slice (fromJust index + 1) (length str - 1) str
 		in (front, back)
 
-
---getStart :: String -> Int -> String
---getStart str index = slice 0 (fromJust index) str
-
-			
 slice :: Int -> Int -> String -> String
 slice from to xs = take (to - from + 1) (drop from xs)
 
-{-
-splitNodeNew :: String -> (String, String) -> Bool -> (String, String)
-splitNodeNew [] accum  _ = accum
-splitNodeNew (x:xs) (a,b) isHead =
-	let isHead = x == ":" 
-	in if isHead then
-		splitNodeNew xs (a++x,b) True
-	   else splitNodeNew xs (a,b++x) False
--}
-
-{-
-spliteNode3 [] accum _ = accum
-spliteNode3 (x:xs) isHead =
-	if isHead
-	   then (x : splitNode3 xs False, []) 
-	else
-	   (
--}
-	
 
 --sampData = "{\"name\":\"True\"}"
 --sampData = "\"name\":\"150\""
