@@ -37,22 +37,8 @@ showJData (JSONarray s) = concat $ map show s
 showJNode :: JSONnode -> String
 showJNode (JSONnode key jData) = key ++ ": " ++ (show jData)
 
--- Sample Data --
-x = JSONstring "poop"
-d = JSONnum 56
-e = JSONbool True
-n = JSONnode "expression" x
-c = JSONnode "expression" x
-
-
-y = JSONobject [n,c]
-b = JSONnode "exp" y
-
-k = JSONnode "key" (JSONarray [x,d,e])
-
 -- Pipe operator for easy chaining
 x |> f = f x
-
 
 main = do
 	contents <- getContents
@@ -155,7 +141,6 @@ stripArray str =
 	tail $ init str
 
 -- Splitter functions --
-
 splitNode3 :: String -> (String, String)
 splitNode3 str = 
 	let index = findIndex (\x -> x == ':') str
@@ -169,6 +154,15 @@ splitNode3 str =
 slice :: Int -> Int -> String -> String
 slice from to xs = take (to - from + 1) (drop from xs)
 
+-- Sample Data --
+x = JSONstring "poop"
+d = JSONnum 56
+e = JSONbool True
+n = JSONnode "expression" x
+c = JSONnode "expression" x
+y = JSONobject [n,c]
+b = JSONnode "exp" y
+k = JSONnode "key" (JSONarray [x,d,e])
 
 --sampData = "{\"name\":\"True\"}"
 --sampData = "\"name\":\"150\""
