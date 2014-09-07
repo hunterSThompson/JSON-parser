@@ -40,6 +40,7 @@ showJNode (JSONnode key jData) = key ++ ": " ++ (show jData)
 -- Pipe operator for easy chaining
 x |> f = f x
 
+-- Main entry point --
 main = do
 	contents <- getContents
 	let new = filterReturns contents
@@ -63,14 +64,21 @@ parseJSON jsonString
 	      key    = fst splits
 	      str    = snd splits
 
+
 newObjNode :: String -> JSONnode
 newObjNode obj = JSONnode "key" (JSONobject [])
+
+newStringNode :: String -> JSONnode
+newStringNode str = 
+	let key = "key"
+	in JSONnode key (JSONstring str)
+
 
 
 -- New Parser Func --
 jsonParse :: String -> Maybe JSONnode
-jsonParse jsonString
-	| isObject' = Just (newObjNode jsonString)
+jsonParse jStr
+	| isObject' = Just (newObjNode jStr)
 	-- | isArray
 	-- | isBool        = createBoolNode key str
 	-- | isNum 	= createNumNode key str
@@ -78,7 +86,11 @@ jsonParse jsonString
 	| otherwise     = Nothing
 	-- | otherwise     = JSONnode key (JSONstring str)
 	where 
-		isObject' = isObject jsonString
+		isObject' = isObject jStr
+		--isArray'  = isObject jsonString
+		--isNum'    = isObject jsonString
+		--isString' = isObject jsonString
+		--isObject' = isObject jsonString
 
 
 -- JSON type checkers --
