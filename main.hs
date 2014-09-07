@@ -9,10 +9,9 @@ import Data.Maybe
 import Data.Char
 import Text.Read
 import Data.List
-import Data.Text
 
 
-data JSONnode = JSONnode String JSONdata | Fail
+data JSONnode = JSONnode String JSONdata 
 		--deriving (show)
 
 data JSONdata =   JSONarray [JSONdata] 
@@ -25,7 +24,6 @@ data JSONdata =   JSONarray [JSONdata]
 -- Show instances to display JSONnodes --
 instance Show JSONnode where
 	show (JSONnode key jData) = key ++ ": " ++ (showJData jData)
-	show Fail = "----Fail----"
 
 instance Show JSONdata where
 	show jd = showJData jd
@@ -52,14 +50,8 @@ b = JSONnode "exp" y
 
 k = JSONnode "key" (JSONarray [x,d,e])
 
-
--- Pipe operator for easy chaining --
+-- Pipe operator for easy chaining
 x |> f = f x
-
--- Trim white space --
-trim :: String -> String
-trim str = str |> pack |> strip |> upnack
-
 
 
 main = do
@@ -86,25 +78,18 @@ parseJSON jsonString
 	      key    = fst splits
 	      str    = snd splits
 
-{-
 newObjNode :: String -> JSONnode
-newObjNode str = --JSONnode "key" (JSONobject [])
-	-- Trim white space
-	let trimmed = str |> pack |> strip |> unpack
-	    splits = splitNode3
--}
-	
-
+newObjNode obj = JSONnode "key" (JSONobject [])
 
 -- New Parser Func --
-jsonParse :: String -> JSONnode
+jsonParse :: String -> Maybe JSONnode
 jsonParse jsonString
-	| isObject' = newObjNode jsonString
+	| isObject' = Just (newObjNode jsonString)
 	-- | isArray
 	-- | isBool        = createBoolNode key str
 	-- | isNum 	= createNumNode key str
 	-- | isString str  = JSONnode key (JSONstring str)
-	| otherwise     = Fail
+	| otherwise     = Nothing
 	-- | otherwise     = JSONnode key (JSONstring str)
 	where 
 		isObject' = isObject jsonString
@@ -198,6 +183,9 @@ splitNode3 str =
 		    back = slice (fromJust index + 1) (length str - 1) str
 		in (front, back)
 
+
+--getStart :: String -> Int -> String
+--getStart str index = slice 0 (fromJust index) str
 
 			
 slice :: Int -> Int -> String -> String
