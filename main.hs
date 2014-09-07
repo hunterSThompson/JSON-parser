@@ -11,7 +11,7 @@ import Text.Read
 import Data.List
 
 
-data JSONnode = JSONnode String JSONdata 
+data JSONnode = JSONnode String JSONdata | Fail
 		--deriving (show)
 
 data JSONdata =   JSONarray [JSONdata] 
@@ -70,24 +70,29 @@ newObjNode obj = JSONnode "key" (JSONobject [])
 
 newStringNode :: String -> JSONnode
 newStringNode str = 
-	let key = "key"
+	let -- preped = prepString str (strip the {}/[] and extra spaces
+		key = "key"
 	in JSONnode key (JSONstring str)
 
+newArrayNode :: String -> JSONnode
+newArrayNode obj =
+	let key = "key"
+	in JSONnode key (JSONobject [])
 
 
 -- New Parser Func --
-jsonParse :: String -> Maybe JSONnode
+jsonParse :: String -> JSONnode
 jsonParse jStr
-	| isObject' = Just (newObjNode jStr)
-	-- | isArray
+	| isObject' = newObjNode jStr
+	| isArray'  = newArrayNode jStr
 	-- | isBool        = createBoolNode key str
 	-- | isNum 	= createNumNode key str
 	-- | isString str  = JSONnode key (JSONstring str)
-	| otherwise     = Nothing
+	| otherwise = Fail
 	-- | otherwise     = JSONnode key (JSONstring str)
 	where 
 		isObject' = isObject jStr
-		--isArray'  = isObject jsonString
+		isArray'  = isArray jStr
 		--isNum'    = isObject jsonString
 		--isString' = isObject jsonString
 		--isObject' = isObject jsonString
