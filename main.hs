@@ -78,19 +78,18 @@ newArrayNode obj =
 	let key = "key"
 	in JSONnode key (JSONobject [])
 
-removeQuotes :: String -> String
-removeQuotes str = 
-	let first = if head str == '\"' then tail str else str
-	in 
-		if last first == '\"' then init first else first
+
+
+stringToBool :: String -> JSONdata
+stringToBool str = if str == "False" then
+		JSONbool False
+		else JSONbool True
 
 newBoolNode :: String -> JSONnode
 newBoolNode str =
-	--let (key, str) = splitNode str
-	--in if (str == "False")
-		--JSONbool False
-	JSONnode "key" (JSONbool False)
-
+	let (key, str1) = splitNode str
+	    node = stringToBool str1
+	in JSONnode key node
 
 -- New Parser Func --
 jsonParse :: String -> JSONnode
@@ -134,16 +133,6 @@ isArray str = head str == '['
 isBool :: String -> Bool
 isBool str = str == "False" || str == "True"
 
--- JSON creator funcs --
-createBoolNode :: String -> String -> JSONnode
-createBoolNode key str = 
-	if str == "False" then JSONnode key (JSONbool False) else JSONnode key (JSONbool True)
-
-createNumNode :: String -> String -> JSONnode
-createNumNode key str =
-	let num = read str
-	in JSONnode key (JSONnum num)
-
 -- Prep Functions --
 filterReturns :: String -> String
 filterReturns = filter (\x -> (x /= '\n'))
@@ -166,6 +155,12 @@ stripObject str =
 stripArray :: String -> String -- TD: Add an error context.
 stripArray str = 
 	tail $ init str
+
+removeQuotes :: String -> String
+removeQuotes str = 
+	let first = if head str == '\"' then tail str else str
+	in 
+		if last first == '\"' then init first else first
 
 -- Splitter functions --
 splitNode :: String -> (String, String) --Gross. will refactor later
