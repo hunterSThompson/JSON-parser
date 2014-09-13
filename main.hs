@@ -50,14 +50,15 @@ main = do
 
 
 --newObjNode :: String -> JSONnode
-newObjNode :: String -> [String]
+newObjNode :: String -> String
 newObjNode str = 
 	let 
 		prepedStr = str |> stripWhiteSpace |> stripObject
-		splits = (splitOn "," prepedStr) |> (map stripWhiteSpace)
-		key = "key"
+		(key, jStr) = (splitNode prepedStr)
+		splits = (splitOn "," jStr) |> (map stripWhiteSpace) 
+		--key = "key"
 	--in JSONnode key (JSONobject [])
-	in splits
+	in jStr
 
 newStringNode :: String -> JSONnode
 newStringNode str = 
@@ -158,9 +159,16 @@ splitNode :: String -> (String, String)
 splitNode str = 
 	let index = findIndex (\x -> x == ':') str
 	in if index == Nothing
-	      then ("", "")
+		then ("", "")
 	else
-	      splitAt (fromJust index) str
+		let (key, jStr) = splitAt (fromJust index) str
+			--newStr = tail jStr
+		--in (key, (str |> tail |> stripWhiteSpace))
+		--in (key, jStr)
+		in let
+			newStr = tail jStr
+			in (key |> stripWhiteSpace, newStr |> stripWhiteSpace)
+
 
 -- Sample Data --
 x = JSONstring "poop"
