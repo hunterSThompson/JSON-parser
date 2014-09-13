@@ -50,16 +50,15 @@ main = do
 	--putStr $ map toUpper contents
 
 
---newObjNode :: String -> JSONnode
-newObjNode :: String -> String
+newObjNode :: String -> JSONnode
 newObjNode str = 
 	let 
-		prepedStr = str |> stripWhiteSpace |> stripObject
-		(key, jStr) = splitNode prepedStr
-		splits = (splitOn "," jStr) |> (map stripWhiteSpace) 
-		--key = "key"
-	--in JSONnode key (JSONobject [])
-	in jStr
+		str1 = str |> stripWhiteSpace 
+		(key, str2) = splitNode str1
+		str3 = str2 |> stripObject
+		splits = (splitOn "," str3) |> (map stripWhiteSpace) 
+		objs = map (\x -> jsonParse x) splits
+	in JSONnode key (JSONobject objs)
 
 -- For parsing a "key-less" object.  Only used for 'outermost' node
 initFunc :: String -> JSONdata
@@ -84,18 +83,25 @@ removeQuotes str =
 	let first = if head str == '\"' then tail str else str
 	in 
 		if last first == '\"' then init first else first
-	
+
+newBoolNode :: String -> JSONnode
+newBoolNode str =
+	--let (key, str) = splitNode str
+	--in if (str == "False")
+		--JSONbool False
+	JSONnode "key" (JSONbool False)
 
 
 -- New Parser Func --
 jsonParse :: String -> JSONnode
 jsonParse jStr
 	-- | isObject jStr = newObjNode jStr
-	| isArray'  = newArrayNode jStr
-	-- | isBool        = createBoolNode key str
+	| isArray'       = newArrayNode jStr
+	-- | isBool jStr    = createBoolNode key str
+	| otherwise      = newBoolNode jStr
 	-- | isNum 	= createNumNode key str
 	-- | isString str  = JSONnode key (JSONstring str)
-	| otherwise = JSONnode "FAIL" (JSONbool False)
+	-- | otherwise = JSONnode "FAIL" (JSONbool False)
 	-- | otherwise     = JSONnode key (JSONstring str)
 	where 
 		isObject' = isObject jStr
