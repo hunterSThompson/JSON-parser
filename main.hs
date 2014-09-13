@@ -49,16 +49,19 @@ main = do
 	--putStr $ map toUpper contents
 
 
-newObjNode :: String -> JSONnode
+--newObjNode :: String -> JSONnode
+newObjNode :: String -> [String]
 newObjNode str = 
 	let 
 		prepedStr = str |> stripWhiteSpace |> stripObject
+		splits = (splitOn "," prepedStr) |> (map stripWhiteSpace)
 		key = "key"
-	in JSONnode key (JSONobject [])
+	--in JSONnode key (JSONobject [])
+	in splits
 
 newStringNode :: String -> JSONnode
 newStringNode str = 
-	let -- preped = prepString str (strip the {}/[] and extra spaces
+	let -- preped = prepString str (strip the {}/[] and extra spaces)
 		key = "key"
 	in JSONnode key (JSONstring str)
 
@@ -78,7 +81,7 @@ removeQuotes str =
 -- New Parser Func --
 jsonParse :: String -> JSONnode
 jsonParse jStr
-	| isObject jStr = newObjNode jStr
+	-- | isObject jStr = newObjNode jStr
 	| isArray'  = newArrayNode jStr
 	-- | isBool        = createBoolNode key str
 	-- | isNum 	= createNumNode key str
@@ -151,18 +154,13 @@ stripArray str =
 	tail $ init str
 
 -- Splitter functions --
-splitNode3 :: String -> (String, String)
-splitNode3 str = 
+splitNode :: String -> (String, String)
+splitNode str = 
 	let index = findIndex (\x -> x == ':') str
 	in if index == Nothing
 	      then ("", "")
-	else 
-		let front = slice 0 (fromJust index - 1) str
-		    back = slice (fromJust index + 1) (length str - 1) str
-		in (front, back)
-
-slice :: Int -> Int -> String -> String
-slice from to xs = take (to - from + 1) (drop from xs)
+	else
+	      splitAt (fromJust index) str
 
 -- Sample Data --
 x = JSONstring "poop"
