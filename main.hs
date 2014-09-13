@@ -37,6 +37,7 @@ showJData (JSONarray s) = concat $ map show s
 
 showJNode :: JSONnode -> String
 showJNode (JSONnode key jData) = key ++ ": " ++ (show jData)
+showJNode Fail = "Failed!"
 
 -- Pipe operator for easy chaining
 x |> f = f x
@@ -54,11 +55,18 @@ newObjNode :: String -> String
 newObjNode str = 
 	let 
 		prepedStr = str |> stripWhiteSpace |> stripObject
-		(key, jStr) = (splitNode prepedStr)
+		(key, jStr) = splitNode prepedStr
 		splits = (splitOn "," jStr) |> (map stripWhiteSpace) 
 		--key = "key"
 	--in JSONnode key (JSONobject [])
 	in jStr
+
+-- For parsing a "key-less" object.  Only used for 'outermost' node
+initFunc :: String -> JSONdata
+initFunc jStr =
+	let prepedStr = jStr |> stripWhiteSpace |> stripObject |> stripWhiteSpace
+	    nodes = (splitOn "," jStr) |> (map stripWhiteSpace) |> (map jsonParse)
+	in JSONobject nodes
 
 newStringNode :: String -> JSONnode
 newStringNode str = 
@@ -87,7 +95,7 @@ jsonParse jStr
 	-- | isBool        = createBoolNode key str
 	-- | isNum 	= createNumNode key str
 	-- | isString str  = JSONnode key (JSONstring str)
-	| otherwise = Fail
+	| otherwise = JSONnode "FAIL" (JSONbool False)
 	-- | otherwise     = JSONnode key (JSONstring str)
 	where 
 		isObject' = isObject jStr
@@ -132,16 +140,15 @@ createNumNode key str =
 
 -- Prep Functions --
 filterReturns :: String -> String
-filterReturns = filter (\x -> (x /= '\n')) 
+filterReturns = filter (\x -> (x /= '\n'))
 
 filterQuotes :: String -> String
-filterQuotes = filter (\x -> (x /= '\"')) 
+filterQuotes = filter (\x -> (x /= '\"'))
 
 prepString :: String -> String -- Composed. Yes!
 prepString = filterReturns . filterQuotes 
 
 -- Strip Functions --
-
 stripWhiteSpace :: String -> String
 stripWhiteSpace str =
 	str |> pack |> strip |> unpack
@@ -155,16 +162,13 @@ stripArray str =
 	tail $ init str
 
 -- Splitter functions --
-splitNode :: String -> (String, String)
+splitNode :: String -> (String, String) --Gross. will refactor later
 splitNode str = 
 	let index = findIndex (\x -> x == ':') str
 	in if index == Nothing
 		then ("", "")
 	else
 		let (key, jStr) = splitAt (fromJust index) str
-			--newStr = tail jStr
-		--in (key, (str |> tail |> stripWhiteSpace))
-		--in (key, jStr)
 		in let
 			newStr = tail jStr
 			in (key |> stripWhiteSpace, newStr |> stripWhiteSpace)
