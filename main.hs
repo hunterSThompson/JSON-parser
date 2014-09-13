@@ -51,7 +51,7 @@ main = do
 
 -- New Parser Func --
 jsonParse :: String -> JSONnode
-jsonParse jStr
+jsonParse str
 	-- | isObject jStr = newObjNode jStr
 	| isArray'       = newArrayNode jStr
 	-- | isBool jStr    = createBoolNode key str
@@ -61,6 +61,7 @@ jsonParse jStr
 	-- | otherwise = JSONnode "FAIL" (JSONbool False)
 	-- | otherwise     = JSONnode key (JSONstring str)
 	where 
+		jStr = str |> trim
 		isObject' = isObject jStr
 		isArray'  = isArray jStr
 		--isNum'    = isObject jsonString
@@ -68,26 +69,28 @@ jsonParse jStr
 		--isObject' = isObject jsonString
 		
 
--- For parsing a "key-less" object.  Only used for 'outermost' node
+-- Main Parse Funcion --
+{- For parsing a "key-less" object.  Only used for 'outermost' node -}
 parse :: String -> JSONdata
 parse jStr =
-	let prepedStr = jStr |> stripWhiteSpace |> stripObject |> stripWhiteSpace
-	    nodes = (splitOn "," jStr) |> (map stripWhiteSpace) |> (map jsonParse)
+	let prepedStr = jStr |> trim |> stripObject |> trim 
+	    nodes = (splitOn "," prepedStr) |> (map trim) |> (map jsonParse)
 	in JSONobject nodes
 
+-- JSON type handlers --
 newObjNode :: String -> JSONnode
 newObjNode str = 
 	let 
-		str1 = str |> stripWhiteSpace 
-		(key, str2) = splitNode str1
-		str3 = str2 |> stripObject
-		splits = (splitOn "," str3) |> (map stripWhiteSpace) 
-		objs = map (\x -> jsonParse x) splits
+		str1 = str |> trim{-Cut out white space -}
+		(key, str2) = splitNode str1 {-Split the node into key & string -}
+		str3 = str2 |> stripObject {-Strip {} off object string -}
+		splits = (splitOn "," str3) |> (map trim) {-Split properties -}
+		objs = map (\x -> jsonParse x) splits {-Parse each object string -}
 	in JSONnode key (JSONobject objs)
 
 newStringNode :: String -> JSONnode
 newStringNode str = 
-	let -- preped = prepString str (strip the {}/[] and extra spaces)
+	let 
 		key = "key"
 	in JSONnode key (JSONstring str)
 
@@ -106,7 +109,6 @@ newBoolNode str =
 	let (key, str1) = splitNode str
 	    node = stringToBool str1
 	in JSONnode key node
-
 
 
 -- JSON type checkers --
@@ -145,8 +147,8 @@ prepString = filterReturns . filterQuotes
 
 
 -- Strip Functions --
-stripWhiteSpace :: String -> String
-stripWhiteSpace str =
+trim :: String -> String
+trim str =
 	str |> pack |> strip |> unpack
 
 stripObject :: String -> String -- TD: Add an error context.
@@ -173,7 +175,7 @@ splitNode str =
 		let (key, jStr) = splitAt (fromJust index) str
 		in let
 			newStr = tail jStr
-			in (key |> stripWhiteSpace, newStr |> stripWhiteSpace)
+			in (key |> trim, newStr |> trim)
 
 
 -- Sample Data --
