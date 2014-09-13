@@ -12,15 +12,14 @@ import Data.List
 import Data.Text (strip, pack, unpack)
 
 
+-- Types --
 data JSONnode = JSONnode String JSONdata | Fail
-		--deriving (show)
 
 data JSONdata =   JSONarray [JSONdata] 
 		| JSONstring String
 		| JSONobject [JSONnode]
 		| JSONbool Bool
 		| JSONnum Float
-		--deriving (show)
 
 -- Show instances to display JSONnodes --
 instance Show JSONnode where
@@ -48,48 +47,7 @@ main = do
 	let new = filterReturns contents
 	putStr $ show new
 	--putStr $ map toUpper contents
-
-
-newObjNode :: String -> JSONnode
-newObjNode str = 
-	let 
-		str1 = str |> stripWhiteSpace 
-		(key, str2) = splitNode str1
-		str3 = str2 |> stripObject
-		splits = (splitOn "," str3) |> (map stripWhiteSpace) 
-		objs = map (\x -> jsonParse x) splits
-	in JSONnode key (JSONobject objs)
-
--- For parsing a "key-less" object.  Only used for 'outermost' node
-initFunc :: String -> JSONdata
-initFunc jStr =
-	let prepedStr = jStr |> stripWhiteSpace |> stripObject |> stripWhiteSpace
-	    nodes = (splitOn "," jStr) |> (map stripWhiteSpace) |> (map jsonParse)
-	in JSONobject nodes
-
-newStringNode :: String -> JSONnode
-newStringNode str = 
-	let -- preped = prepString str (strip the {}/[] and extra spaces)
-		key = "key"
-	in JSONnode key (JSONstring str)
-
-newArrayNode :: String -> JSONnode
-newArrayNode obj =
-	let key = "key"
-	in JSONnode key (JSONobject [])
-
-
-
-stringToBool :: String -> JSONdata
-stringToBool str = if str == "False" then
-		JSONbool False
-		else JSONbool True
-
-newBoolNode :: String -> JSONnode
-newBoolNode str =
-	let (key, str1) = splitNode str
-	    node = stringToBool str1
-	in JSONnode key node
+	
 
 -- New Parser Func --
 jsonParse :: String -> JSONnode
@@ -108,6 +66,47 @@ jsonParse jStr
 		--isNum'    = isObject jsonString
 		--isString' = isObject jsonString
 		--isObject' = isObject jsonString
+		
+
+-- For parsing a "key-less" object.  Only used for 'outermost' node
+parse :: String -> JSONdata
+parse jStr =
+	let prepedStr = jStr |> stripWhiteSpace |> stripObject |> stripWhiteSpace
+	    nodes = (splitOn "," jStr) |> (map stripWhiteSpace) |> (map jsonParse)
+	in JSONobject nodes
+
+newObjNode :: String -> JSONnode
+newObjNode str = 
+	let 
+		str1 = str |> stripWhiteSpace 
+		(key, str2) = splitNode str1
+		str3 = str2 |> stripObject
+		splits = (splitOn "," str3) |> (map stripWhiteSpace) 
+		objs = map (\x -> jsonParse x) splits
+	in JSONnode key (JSONobject objs)
+
+newStringNode :: String -> JSONnode
+newStringNode str = 
+	let -- preped = prepString str (strip the {}/[] and extra spaces)
+		key = "key"
+	in JSONnode key (JSONstring str)
+
+newArrayNode :: String -> JSONnode
+newArrayNode obj =
+	let key = "key"
+	in JSONnode key (JSONobject [])
+
+stringToBool :: String -> JSONdata
+stringToBool str = if str == "False" then
+		JSONbool False
+		else JSONbool True
+
+newBoolNode :: String -> JSONnode
+newBoolNode str =
+	let (key, str1) = splitNode str
+	    node = stringToBool str1
+	in JSONnode key node
+
 
 
 -- JSON type checkers --
@@ -133,6 +132,7 @@ isArray str = head str == '['
 isBool :: String -> Bool
 isBool str = str == "False" || str == "True"
 
+
 -- Prep Functions --
 filterReturns :: String -> String
 filterReturns = filter (\x -> (x /= '\n'))
@@ -142,6 +142,7 @@ filterQuotes = filter (\x -> (x /= '\"'))
 
 prepString :: String -> String -- Composed. Yes!
 prepString = filterReturns . filterQuotes 
+
 
 -- Strip Functions --
 stripWhiteSpace :: String -> String
