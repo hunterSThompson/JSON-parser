@@ -9,6 +9,7 @@ import Data.Maybe
 import Data.Char
 import Text.Read
 import Data.List
+import Data.Text (strip, pack, unpack)
 
 
 data JSONnode = JSONnode String JSONdata | Fail
@@ -47,26 +48,13 @@ main = do
 	putStr $ show new
 	--putStr $ map toUpper contents
 
-test = parseJSON prepedData
-
-
--- Old Parser Func --
-parseJSON :: String -> JSONnode
-parseJSON jsonString
- 	| isObject str  = createObjectNode key str
-	| isBool str 	= createBoolNode key str
-	| isNum str 	= createNumNode key str
-	-- | isString str  = JSONnode key (JSONstring str)
-	-- | otherwise     = JSONnode key (JSONnum 69)
-	| otherwise     = JSONnode key (JSONstring str)
-	where 
-	      splits = splitNode3 jsonString
-	      key    = fst splits
-	      str    = snd splits
-
 
 newObjNode :: String -> JSONnode
-newObjNode obj = JSONnode "key" (JSONobject [])
+newObjNode str = 
+	let 
+		prepedStr = str |> stripWhiteSpace |> stripObject
+		key = "key"
+	in JSONnode key (JSONobject [])
 
 newStringNode :: String -> JSONnode
 newStringNode str = 
@@ -90,7 +78,7 @@ removeQuotes str =
 -- New Parser Func --
 jsonParse :: String -> JSONnode
 jsonParse jStr
-	| isObject' = newObjNode jStr
+	| isObject jStr = newObjNode jStr
 	| isArray'  = newArrayNode jStr
 	-- | isBool        = createBoolNode key str
 	-- | isNum 	= createNumNode key str
@@ -133,13 +121,6 @@ createBoolNode :: String -> String -> JSONnode
 createBoolNode key str = 
 	if str == "False" then JSONnode key (JSONbool False) else JSONnode key (JSONbool True)
 
-createObjectNode :: String -> String -> JSONnode
-createObjectNode key str =
-	let strippedStr = stripObject str
-	    props = splitOn "," strippedStr
-	    nodes = map parseJSON props
-	in JSONnode key (JSONobject nodes)
-
 createNumNode :: String -> String -> JSONnode
 createNumNode key str =
 	let num = read str
@@ -156,6 +137,11 @@ prepString :: String -> String -- Composed. Yes!
 prepString = filterReturns . filterQuotes 
 
 -- Strip Functions --
+
+stripWhiteSpace :: String -> String
+stripWhiteSpace str =
+	str |> pack |> strip |> unpack
+
 stripObject :: String -> String -- TD: Add an error context.
 stripObject str = 
 	tail $ init str
