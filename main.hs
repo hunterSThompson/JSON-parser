@@ -60,15 +60,10 @@ jsonParse str
 	| otherwise     = newStringNode key jStr
 	where 
 		(key, jStr) = splitNode str
-		--jStr = str |> trim
 		isBool' = isBool jStr
 		isNum' = isNum jStr
 		isArray' = head jStr == '['
 		isObject' = head jStr == '{'
-		--isArray'  = isArray jStr
-		--isNum'    = isObject jsonString
-		--isString' = isObject jsonString
-		--isObject' = isObject jsonString
 		
 
 -- Main Parse Funcion --
@@ -76,16 +71,16 @@ jsonParse str
 parse :: String -> JSONdata
 parse jStr =
 	let prepedStr = jStr |> trim |> stripObject |> trim 
-	    nodes = (splitOn "," prepedStr) |> (map trim) |> (map jsonParse)
+	    nodes = (splitOn "," prepedStr) |> map (\x -> x |> trim |> jsonParse)
 	in JSONobject nodes
 
 -- JSON type handlers --
 newObjNode :: String -> String -> JSONnode
 newObjNode key str = 
 	let 
-		str3 = str |> stripObject {-Strip {} off object string -}
-		splits = (splitOn "," str3) |> (map trim) {-Split properties -}
-		objs = map (\x -> jsonParse x) splits {-Parse each object string -}
+		str3 = str |> stripObject {- Strip {} off object string -}
+		splits = (splitOn "," str3) |> (map trim) {- Split properties -}
+		objs = map (\x -> jsonParse x) splits {- Parse each object string -}
 	in JSONnode key (JSONobject objs)
 
 newStringNode :: String -> String -> JSONnode
@@ -195,14 +190,3 @@ dt = "name:key"
 prepedData = prepString sampData
 
 sampleData = "{\"menu\": {\"id\": \"file\",\"value\": \"File\",\"popup\":\"menuitem\": [{\"value\": \"New\", \"onclick\": \"CreateNewDoc()\"},{\"value\": \"Open\", \"onclick\": \"OpenDoc()\"},{\"value\": \"Close\", \"onclick\": \"CloseDoc()\"}]}}}"
-
-
-
-
-
-
-
-
-
-
-
