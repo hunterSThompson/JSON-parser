@@ -21,9 +21,10 @@ data JSONdata =   JSONarray [JSONdata]
 		| JSONbool Bool
 		| JSONnum Float
 
--- Show instances to display JSONnodes --
+-- Show instances to display JSONnodes j--
 instance Show JSONnode where
 	show (JSONnode key jData) = key ++ ": " ++ (showJData jData)
+	show Fail = "failed!!"
 
 instance Show JSONdata where
 	show jd = showJData jd
@@ -46,24 +47,31 @@ main = do
 	contents <- getContents
 	let new = filterReturns contents
 	putStr $ show new
-	--putStr $ map toUpper contents
+	--putStr $ map(splitOn "," jStr) |> (map stripWhiteSpace) |> (map jsonParse) toUpper contents
 	
 
 -- New Parser Func --
 jsonParse :: String -> JSONnode
 jsonParse str
-	-- | isObject jStr = newObjNode jStr
-	| isArray'       = newArrayNode jStr
+	| isObject' 	= newObjNode key jStr
+	| isArray'      = newArrayNode jStr
+	| isBool'   	= newBoolNode key jStr
+	| isNum'	= newNumNode key jStr
 	-- | isBool jStr    = createBoolNode key str
-	| otherwise      = newBoolNode jStr
+	-- | otherwise      = newBoolNode jStr
+	| otherwise      = Fail
 	-- | isNum 	= createNumNode key str
 	-- | isString str  = JSONnode key (JSONstring str)
 	-- | otherwise = JSONnode "FAIL" (JSONbool False)
 	-- | otherwise     = JSONnode key (JSONstring str)
 	where 
-		jStr = str |> trim
-		isObject' = isObject jStr
-		isArray'  = isArray jStr
+		(key, jStr) = splitNode str
+		--jStr = str |> trim
+		isBool' = isBool jStr
+		isNum' = isNum jStr
+		isArray' = head jStr == '['
+		isObject' = head jStr == '{'
+		--isArray'  = isArray jStr
 		--isNum'    = isObject jsonString
 		--isString' = isObject jsonString
 		--isObject' = isObject jsonString
@@ -78,12 +86,10 @@ parse jStr =
 	in JSONobject nodes
 
 -- JSON type handlers --
-newObjNode :: String -> JSONnode
-newObjNode str = 
+newObjNode :: String -> String -> JSONnode
+newObjNode key str = 
 	let 
-		str1 = str |> trim{-Cut out white space -}
-		(key, str2) = splitNode str1 {-Split the node into key & string -}
-		str3 = str2 |> stripObject {-Strip {} off object string -}
+		str3 = str |> stripObject {-Strip {} off object string -}
 		splits = (splitOn "," str3) |> (map trim) {-Split properties -}
 		objs = map (\x -> jsonParse x) splits {-Parse each object string -}
 	in JSONnode key (JSONobject objs)
@@ -99,16 +105,15 @@ newArrayNode obj =
 	let key = "key"
 	in JSONnode key (JSONobject [])
 
-stringToBool :: String -> JSONdata
-stringToBool str = if str == "False" then
-		JSONbool False
-		else JSONbool True
-
-newBoolNode :: String -> JSONnode
-newBoolNode str =
-	let (key, str1) = splitNode str
-	    node = stringToBool str1
+newBoolNode :: String -> String -> JSONnode
+newBoolNode key str =
+	let node = if str == "False" then JSONbool False else JSONbool True
 	in JSONnode key node
+
+newNumNode :: String -> String -> JSONnode
+newNumNode key str =
+	let num = read str :: Float
+	in JSONnode key (JSONnum num)
 
 
 -- JSON type checkers --
