@@ -23,8 +23,8 @@ data JSONdata =   JSONarray [JSONdata]
 
 -- Show instances to display JSONnodes j--
 instance Show JSONnode where
-	--show (JSONnode key jData) = key ++ ": " ++ (showJData jData)
-	show (JSONnode key jData) = "\"" ++ key ++ "\"  " ++ ": " ++ (show jData)
+	--show (JSONnode key jData) = "\"" ++ key ++ "\" : " ++ (show jData)
+	show (JSONnode key jData) = "\"" ++ key ++ "\" : " ++ (show jData)
 	show Fail = "failed!!"
 
 instance Show JSONdata where
@@ -33,8 +33,11 @@ instance Show JSONdata where
 showJData (JSONstring s) = show s
 showJData (JSONbool s) = show s
 showJData (JSONnum s) = show s
-showJData (JSONobject s) = concat $ map show s
+showJData (JSONobject s) = concat $ map (\x -> "\t" ++ show x ++ "\n") s
 showJData (JSONarray s) = concat $ map show s
+
+--renderJObject :: JSONData -> String
+--renderJObject (JSONobject objs
 
 -- Pipe operator for easy chaining
 x |> f = f x
@@ -194,6 +197,7 @@ c = JSONnode "expression" x
 y = JSONobject [n,c]
 b = JSONnode "exp" y
 k = JSONnode "key" (JSONarray [x,d,e])
+p = JSONnode "key1" y
 
 --sampData = "{\"name\":\"True\"}"
 --sampData = "\"name\":\"150\""
