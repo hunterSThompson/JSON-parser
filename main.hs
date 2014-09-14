@@ -23,7 +23,8 @@ data JSONdata =   JSONarray [JSONdata]
 
 -- Show instances to display JSONnodes j--
 instance Show JSONnode where
-	show (JSONnode key jData) = key ++ ": " ++ (showJData jData)
+	--show (JSONnode key jData) = key ++ ": " ++ (showJData jData)
+	show (JSONnode key jData) = "\"" ++ key ++ "\"  " ++ ": " ++ (show jData)
 	show Fail = "failed!!"
 
 instance Show JSONdata where
@@ -35,31 +36,30 @@ showJData (JSONnum s) = show s
 showJData (JSONobject s) = concat $ map show s
 showJData (JSONarray s) = concat $ map show s
 
-showJNode :: JSONnode -> String
-showJNode (JSONnode key jData) = key ++ ": " ++ (show jData)
-showJNode Fail = "Failed!"
-
 -- Pipe operator for easy chaining
 x |> f = f x
 
 -- Main entry point --
 main = do
 	contents <- getContents
-	let new = filterReturns contents
-	putStr $ show new
-	--putStr $ map(splitOn "," jStr) |> (map stripWhiteSpace) |> (map jsonParse) toUpper contents
+	--let new = filterReturns contents
+	--let parsed = jsonParse contents
+	--let noQuotes = removeQuotes contents
+	let noQuotes = parse contents
+	putStrLn "Result:"
+	putStr $ show noQuotes
 	
 
 -- New Parser Func --
 jsonParse :: String -> JSONnode
-jsonParse str
+jsonParse str 
 	| isObject' 	= newObjNode key jStr
 	| isArray'      = newArrayNode key jStr
 	| isBool'   	= newBoolNode key jStr
 	| isNum'	= newNumNode key jStr
 	| otherwise     = newStringNode key jStr
 	where 
-		(key, jStr) = splitNode str
+		(key, jStr) = splitNode2 str
 		isBool' = isBool jStr
 		isNum' = isNum jStr
 		isArray' = head jStr == '['
@@ -153,7 +153,9 @@ stripArray str =
 
 removeQuotes :: String -> String
 removeQuotes str = 
-	let first = if head str == '\"' then tail str else str
+	let 
+		trm = trim str
+		first = if head trm == '\"' then tail trm else trm
 	in 
 		if last first == '\"' then init first else first
 
@@ -166,8 +168,21 @@ splitNode str =
 	else
 		let (key, jStr) = splitAt (fromJust index) str
 		in let
-			newStr = tail jStr
+			newStr = tail jStr {- Exclude the ':' when splitting key & string -}
 			in (key |> trim, newStr |> trim)
+
+
+splitNode2 :: String -> (String, String) --Gross. will refactor later
+splitNode2 str =
+	let index = findIndex (\x -> x == ':') str
+	in cut str index
+
+cut :: String -> Maybe Int -> (String, String)
+cut _ Nothing = ("", "")
+cut str (Just index) = 
+	let (key, jStr) = splitAt index str
+	in (key |> removeQuotes, jStr |> tail |> trim)
+
 
 
 -- Sample Data --
