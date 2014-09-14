@@ -54,16 +54,10 @@ main = do
 jsonParse :: String -> JSONnode
 jsonParse str
 	| isObject' 	= newObjNode key jStr
-	| isArray'      = newArrayNode jStr
+	| isArray'      = newArrayNode key jStr
 	| isBool'   	= newBoolNode key jStr
 	| isNum'	= newNumNode key jStr
-	-- | isBool jStr    = createBoolNode key str
-	-- | otherwise      = newBoolNode jStr
-	| otherwise      = Fail
-	-- | isNum 	= createNumNode key str
-	-- | isString str  = JSONnode key (JSONstring str)
-	-- | otherwise = JSONnode "FAIL" (JSONbool False)
-	-- | otherwise     = JSONnode key (JSONstring str)
+	| otherwise     = newStringNode key jStr
 	where 
 		(key, jStr) = splitNode str
 		--jStr = str |> trim
@@ -94,16 +88,14 @@ newObjNode key str =
 		objs = map (\x -> jsonParse x) splits {-Parse each object string -}
 	in JSONnode key (JSONobject objs)
 
-newStringNode :: String -> JSONnode
-newStringNode str = 
-	let 
-		key = "key"
-	in JSONnode key (JSONstring str)
+newStringNode :: String -> String -> JSONnode
+newStringNode key str = JSONnode key (JSONstring str)
 
-newArrayNode :: String -> JSONnode
-newArrayNode obj =
-	let key = "key"
-	in JSONnode key (JSONobject [])
+newArrayNode :: String -> String -> JSONnode
+newArrayNode key obj =
+	-- split by ',' then map jsonParse to result.
+	-- if lists in JSON are homogenous, check all first and throw error
+	JSONnode key (JSONobject [])
 
 newBoolNode :: String -> String -> JSONnode
 newBoolNode key str =
