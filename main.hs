@@ -165,9 +165,6 @@ b = JSONnode "exp" y
 k = JSONnode "key" (JSONarray [x,d,e])
 p = JSONnode "key1" y
 
---sampData = "{\"name\":\"True\"}"
---sampData = "\"name\":\"150\""
---sampData = "\"name\":{key:150,secKey:True}"
 sampData = "\"name\":{key:150}"
 
 dt = "name:key"
